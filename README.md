@@ -7,4 +7,4 @@ It's about a schedule screen.
 This is Final Output :
 
 
-![index](https://user-images.githubusercontent.com/58075058/199527132-7e077cc3-0d82-4b2d-a07a-3e234ddd17fd.jpg)
+![index](https://user-images.githubusercontent.com/58075058/199527704-c17ffd8b-4726-4a5a-b744-c3cbabfa8b2a.jpg)
