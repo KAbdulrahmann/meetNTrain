@@ -22,7 +22,7 @@ class JoinedUsersContainer extends StatelessWidget {
         image: DecorationImage(
           image: NetworkImage(
             Shared.imageLink(
-                imageKey: event.users![0].profilePicture!,
+                imageKey: event.users![index].profilePicture!,
                 width: 21.0.w,
                 height: 21.0.w),
           ),

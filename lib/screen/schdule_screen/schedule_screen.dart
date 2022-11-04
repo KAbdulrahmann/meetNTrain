@@ -6,7 +6,7 @@ import 'package:meet_n_train/cubit/app_states.dart';
 import 'package:meet_n_train/shared/colors.dart';
 import 'features/custom_app_bar.dart';
 import 'features/custom_events_widget.dart';
-import 'features/custom_today_calendar_widget.dart';
+import 'features/scroll_delegate.dart';
 
 class ScheduleScreen extends StatefulWidget {
   const ScheduleScreen({Key? key}) : super(key: key);
@@ -16,6 +16,10 @@ class ScheduleScreen extends StatefulWidget {
 }
 
 class _ScheduleScreenState extends State<ScheduleScreen> {
+  double indexOfScroll = 0;
+
+  late ScrollController _scrollController;
+
   @override
   void initState() {
     super.initState();
@@ -26,22 +30,22 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     )..addListener(scrollListner);
   }
 
-  late ScrollController _scrollController;
-
-  @override
-  void dispose() {
-    super.dispose();
-    _scrollController.dispose();
-  }
-
-  String message = 'aaa';
-
   void scrollListner() {
     if (AppCubit.get(context).isLoading) return;
     if (_scrollController.offset ==
         _scrollController.position.maxScrollExtent) {
       AppCubit.get(context).getEvents();
     }
+    setState(() {
+      // 340 is the height of event widget
+      indexOfScroll = (_scrollController.position.pixels / 340.h);
+    });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _scrollController.dispose();
   }
 
   @override
@@ -51,67 +55,77 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         listener: (context, state) {},
         builder: (context, state) {
           return Scaffold(
-              body: state is GetEventsLoadingState
-                  ? const Center(
-                      child: CircularProgressIndicator(
-                        color: mainColor,
-                      ),
-                    )
-                  : Padding(
+            body: state is GetEventsLoadingState
+                ? const Center(
+                    child: CircularProgressIndicator(
+                      color: mainColor,
+                    ),
+                  )
+                : RefreshIndicator(
+                    color: mainColor,
+                    onRefresh: () async {
+                      cubit.refreshData();
+                    },
+                    child: Padding(
                       padding: EdgeInsets.symmetric(
                         horizontal: 21.0.w,
                       ),
                       child: Column(
                         children: [
                           const CustomAppBar(),
-                          SizedBox(
-                            height: 10.h,
-                          ),
-                          Expanded(
-                            child: Scrollbar(
+                          Flexible(
+                            child: CustomScrollView(
                               controller: _scrollController,
-                              radius: Radius.circular(10.r),
-                              interactive: true,
-                              thickness: 10,
-                              child: ListView.builder(
-                                  physics: const BouncingScrollPhysics(),
-                                  controller: _scrollController,
-                                  // check if we want to show circular indecator if data is loading or not
-                                  itemCount: cubit.eventsList.length + 2,
-                                  itemBuilder: (context, index) {
-                                    return index == 0
-                                        // -------------- [ for Today Date ] --------------
-                                        ? const CustomTodayCalendarWidget()
-                                        :
-                                        // -------------- [for coming Dates and Events] --------------
-                                        index == cubit.eventsList.length + 1
-                                            // check last index in [listView] to show [message] or [CircularIndecator]
-                                            ? cubit.isLastPage
-                                                ? SizedBox(
-                                                    height: 30.h,
-                                                    child: const Center(
-                                                      child: Text(
-                                                          'All Data Fetched'),
+                              physics: const BouncingScrollPhysics(),
+                              slivers: [
+                                SliverPersistentHeader(
+                                  pinned: true,
+                                  floating: true,
+                                  delegate: Delegate(
+                                    indexOfScroll > 0.15.h
+                                        ? cubit
+                                            .eventsList[indexOfScroll.toInt()]
+                                            .date!
+                                        : DateTime.now(),
+                                  ),
+                                ),
+                                SliverList(
+                                  delegate: SliverChildBuilderDelegate(
+                                    (context, index) {
+                                      return index == cubit.eventsList.length
+                                          // check last index in [listView] to show [message] or [CircularIndecator]
+                                          ? cubit.isLastPage
+                                              ? SizedBox(
+                                                  height: 30.h,
+                                                  child: const Center(
+                                                    child: Text(
+                                                        'All Data Fetched'),
+                                                  ),
+                                                )
+                                              : SizedBox(
+                                                  height: 100.h,
+                                                  child: const Center(
+                                                    child:
+                                                        CircularProgressIndicator(
+                                                      color: mainColor,
                                                     ),
-                                                  )
-                                                : SizedBox(
-                                                    height: 100.h,
-                                                    child: const Center(
-                                                      child:
-                                                          CircularProgressIndicator(
-                                                        color: mainColor,
-                                                      ),
-                                                    ),
-                                                  )
-                                            : CustomEventsWidget(
-                                                index: index - 1,
-                                              );
-                                  }),
+                                                  ),
+                                                )
+                                          : CustomEventsWidget(
+                                              index: index,
+                                            );
+                                    },
+                                    childCount: cubit.eventsList.length + 1,
+                                  ),
+                                )
+                              ],
                             ),
                           ),
                         ],
                       ),
-                    ));
+                    ),
+                  ),
+          );
         });
   }
 }

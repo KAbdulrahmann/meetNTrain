@@ -10,29 +10,30 @@ import '../../../shared/data.dart';
 import '../../../shared/font_style.dart';
 import 'joined_users_widget.dart';
 
-class CustomEventsWidget extends StatefulWidget {
+class CustomEventsWidget extends StatelessWidget {
   const CustomEventsWidget({Key? key, required this.index}) : super(key: key);
   final int index;
 
   @override
-  State<CustomEventsWidget> createState() => _CustomEventsWidgetState();
-}
-
-class _CustomEventsWidgetState extends State<CustomEventsWidget> {
-  @override
   Widget build(BuildContext context) {
     AppCubit cubit = AppCubit.get(context);
-    EventsModel event = cubit.eventsList[widget.index];
+    EventsModel event = cubit.eventsList[index];
+    bool differentDayNumber = index == 0
+        ? true
+        : cubit.eventsList[index].date!.day !=
+            cubit.eventsList[index - 1].date!.day;
     String dayName = (DateFormat('EEE').format(event.date!));
     String dayNumber = (DateFormat('d').format(event.date!));
     String eventDate = DateFormat('EEEE, d MMM y').add_jm().format(event.date!);
     String finishDate =
         event.finishDate!.difference(DateTime.now()).inDays.toString();
+
     return BlocConsumer<AppCubit, AppStates>(
       listener: (context, state) {},
       builder: (context, state) {
         return Row(
           children: [
+            // ----------------------------------- for dates line
             SizedBox(
               height: 340.h,
               width: 50.w,
@@ -40,52 +41,54 @@ class _CustomEventsWidgetState extends State<CustomEventsWidget> {
                 children: [
                   // -------------------------------------------- for vertical line
                   Positioned(
-                    left: 18.w,
+                    left: 15.w,
                     bottom: 0,
                     top: 0.h,
                     child: Container(
                       width: 1.w,
-                      color: Colors.black,
+                      color: Colors.black12,
                     ),
                   ),
                   // -------------------------------------------- for date container
-                  Positioned(
-                    left: 0.w,
-                    top: 21.h,
-                    child: Container(
-                      width: 36.w,
-                      height: 72.w,
-                      decoration: BoxDecoration(
-                          color: mainColor,
-                          borderRadius: BorderRadius.circular(10.r)),
-                      child: Center(
-                        child: Text.rich(
-                          TextSpan(
-                            style: blackTextStyle.copyWith(
-                              fontSize: 13.0.sp,
-                              color: Colors.white,
+                  differentDayNumber
+                      ? Positioned(
+                          left: 0.w,
+                          top: 21.h,
+                          child: Container(
+                            width: 30.w,
+                            height: 50.w,
+                            decoration: BoxDecoration(
+                                color: mainColor,
+                                borderRadius: BorderRadius.circular(10.r)),
+                            child: Center(
+                              child: Text.rich(
+                                TextSpan(
+                                  style: blackTextStyle.copyWith(
+                                    fontSize: 13.0.sp,
+                                    color: Colors.white,
+                                  ),
+                                  children: [
+                                    TextSpan(
+                                      text: '$dayNumber \n',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
+                                    TextSpan(
+                                      text: dayName,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.normal,
+                                        fontSize: 11.0.sp,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
                             ),
-                            children: [
-                              TextSpan(
-                                text: '$dayNumber \n',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                              TextSpan(
-                                text: dayName,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.normal,
-                                  fontSize: 11.0.sp,
-                                ),
-                              ),
-                            ],
                           ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ),
-                  )
+                        )
+                      : Container()
                 ],
               ),
             ),
@@ -97,7 +100,7 @@ class _CustomEventsWidgetState extends State<CustomEventsWidget> {
                 child: Container(
                   width: 280.0.w,
                   height: 281.0.h,
-                  margin: EdgeInsets.only(right: 10.w, bottom: 10.h),
+                  margin: EdgeInsets.symmetric(horizontal: 5.w, vertical: 5.h),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(16.0),
                     color: Colors.white,
@@ -270,13 +273,16 @@ class _CustomEventsWidgetState extends State<CustomEventsWidget> {
                                                 event: event,
                                                 index: 0,
                                               ),
-                                              Positioned(
-                                                right: 0,
-                                                child: JoinedUsersContainer(
-                                                  event: event,
-                                                  index: 1,
-                                                ),
-                                              )
+                                              event.users!.length != 2
+                                                  ? Container()
+                                                  : Positioned(
+                                                      right: 0,
+                                                      child:
+                                                          JoinedUsersContainer(
+                                                        event: event,
+                                                        index: 1,
+                                                      ),
+                                                    )
                                             ],
                                           ),
                                         )

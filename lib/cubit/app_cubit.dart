@@ -10,18 +10,17 @@ class AppCubit extends Cubit<AppStates> {
   static AppCubit get(context) => BlocProvider.of(context);
 
   final List<EventsModel> _eventsList = [];
-  List<EventsModel> _events = [];
 
+  List<EventsModel> _events = [];
   List<EventsModel> get eventsList => _eventsList;
 
   bool isLastPage = false;
   int currentPage = 1;
-
   bool isLoading = false;
+
   Future<void> getEvents() async {
     isLoading = true;
     emit(GetEventsLoadingState());
-
     try {
       if (!isLastPage) {
         _events = await Repo.getEventsModel(currentPage) ?? [];
@@ -36,5 +35,14 @@ class AppCubit extends Cubit<AppStates> {
     } catch (error) {
       emit(GetEventsErrorState(error.toString()));
     }
+  }
+
+  void refreshData() {
+    isLoading = false;
+    isLastPage = false;
+    currentPage = 1;
+    _events.clear();
+
+    emit(RefreshDataSuccessfully());
   }
 }

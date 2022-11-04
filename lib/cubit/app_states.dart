@@ -11,3 +11,6 @@ class GetEventsErrorState extends AppStates {
 
   GetEventsErrorState(this.error);
 }
+
+// for refresh data
+class RefreshDataSuccessfully extends AppStates {}
